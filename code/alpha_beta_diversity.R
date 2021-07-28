@@ -9,6 +9,9 @@ library(extrafont)
 library(vegan)
 library(labdsv)
 library(scales)
+#install.packages("funr")
+library(funr)
+library(pheatmap)
 
 setwd("/Users/biofuture/Documents/Desktop-contents-2021-04-28/Hpolori-Eradication/All_samples_2021_June/")
 
@@ -172,8 +175,7 @@ ggtheme = theme(legend.title = element_blank(),
 ##------------Alpha diversity resistome and microbiome---------------------##
 
 cols <- c("#4DAF4A","#E41A1C", "#984EA3", "#377EB8")
-
-#BQ resistome subtype 
+#resistome subtype 
 Q10_16s_subtype_alpha <- read.table(file = "Q10_16s_subtype_B/out/Krakenalpha/Sample_time_filter_table.txt", sep="\t", header = TRUE, row.names = 1)
 S14_16s_subtype_alpha <- read.table(file = "S14_16s_subtype_A/out/Krakenalpha/Sample_time_filter_table.txt", sep="\t", header = TRUE, row.names = 1)
 BQ_16s_subtype_alpha <- read.table(file = "BQ_16s_subtype/out/Krakenalpha/Sample_time_filter_table.txt", sep="\t", header = TRUE, row.names = 1)
@@ -206,7 +208,7 @@ nametodraw
 maxvlue <- max(alphad[,2])
 minvlue <- max(alphad[,2]) - 50
 ggboxplot(alphad, x = "Sample_time", y = nametodraw, notch = FALSE,main=nametodraw, fill = "Sample_time") + geom_jitter()  + 
-  theme(text=element_text(size=12, family="Arial"),axis.text.x = element_text(angle = 90)) +
+  theme(text=element_text(size=12, family="Arial"),axis.text.x = element_text(angle = 90), legend.position = "none") +
   scale_colour_manual(values = cols) + 
   scale_fill_manual(values = cols) +
   geom_signif(
@@ -214,16 +216,16 @@ ggboxplot(alphad, x = "Sample_time", y = nametodraw, notch = FALSE,main=nametodr
     aes(xmin = group1, xmax = group2, annotations =  sprintf("p = %.2g", p.value), y_position =  c(maxvlue, maxvlue + 100, maxvlue+150, maxvlue+200, maxvlue + 250, maxvlue+300), xmin = c(1, 1, 1, 2, 3, 4), xmax = c(2, 3, 4, 3, 4,5)),
     manual= TRUE
   ) + xlab("") +  ylab("Oberved # of Species") 
-namesout <- paste(namealpha, "_observed.boxplot.pdf")
-ggsave(file=namesout, width = 5, height = 6)
-pv <- tidy(with(alphad, pairwise.wilcox.test(shannon,Sample_time, p.adjust.method = "none")))
+namesout <- paste(namealpha, "_observed.boxplot.svg")
+ggsave(file=namesout, width = 3, height = 4.5, device='svg')
+pv <- tidy(with(alphad, pairwise.wilcox.test(shannon,Sample_time, p.adjust.method = "bonf")))
 pv
 nametodraw <- colnames(alphad)[3]
 nametodraw
 maxvlue <- max(alphad[,3])
 minvlue <- max(alphad[,3]) - 50
 ggboxplot(alphad, x = "Sample_time", y = nametodraw, notch = FALSE,main=nametodraw, fill = "Sample_time") + geom_jitter()  + 
-  theme(text=element_text(size=12, family="Arial"),axis.text.x = element_text(angle = 90)) +
+  theme(text=element_text(size=12, family="Arial"),axis.text.x = element_text(angle = 90), legend.position = "none") +
   scale_colour_manual(values = cols) + 
   scale_fill_manual(values = cols) +
   geom_signif(
@@ -231,13 +233,12 @@ ggboxplot(alphad, x = "Sample_time", y = nametodraw, notch = FALSE,main=nametodr
     aes(xmin = group1, xmax = group2, annotations =  sprintf("p = %.2g", p.value),  y_position =  c(maxvlue, maxvlue + 0.2, maxvlue+0.4,maxvlue+0.6, maxvlue+0.8,  maxvlue+1), xmin = c(1, 1, 1, 2, 3, 4), xmax = c(2, 3, 4, 3,4,5)),
     manual= TRUE
   ) + xlab("") +  ylab("Shannon diversity") 
-namesout <- paste(namealpha, "_shannon.boxplot.pdf")
-ggsave(file=namesout, width = 5, height = 6)
+namesout <- paste(namealpha, "_shannon.boxplot.svg")
+ggsave(file=namesout, width = 3, height = 4.5, device='svg')
 }
-
-
+?geom_signif
 alphadiv_resistome <- function(alphad, namealpha) {
-  
+
   library(tidyverse)
   pv <- tidy(with(alphad, pairwise.wilcox.test(observed,Sample_time, p.adjust.method = "none")))
   pv
@@ -246,16 +247,16 @@ alphadiv_resistome <- function(alphad, namealpha) {
   maxvlue <- max(alphad[,2])
   minvlue <- max(alphad[,2]) - 50
   ggboxplot(alphad, x = "Sample_time", y = nametodraw, notch = FALSE,main=nametodraw, fill = "Sample_time") + geom_jitter()  + 
-    theme(text=element_text(size=12, family="Arial"),axis.text.x = element_text(angle = 90)) +
+    theme(text=element_text(size=12, family="Arial"),axis.text.x = element_text(angle = 90), legend.position = "none") +
     scale_colour_manual(values = cols) + 
     scale_fill_manual(values = cols) +
     geom_signif(
       data=pv[c(1, 2,3, 4,5, 6),], 
       aes(xmin = group1, xmax = group2, annotations =  sprintf("p = %.2g", p.value), y_position =  c(maxvlue, maxvlue + 20, maxvlue+40, maxvlue+60, maxvlue + 80, maxvlue+100), xmin = c(1, 1, 1, 2, 3, 4), xmax = c(2, 3, 4, 3, 4,5)),
-      manual= TRUE
+      manual= TRUE, textsize = 3.0
     ) + xlab("") +  ylab("Oberved # of ARGs subtypes") 
-  namesout <- paste(namealpha, "_observed.boxplot.pdf")
-  ggsave(file=namesout, width = 5, height = 6)
+  namesout <- paste(namealpha, "_observed.boxplot.svg")
+  ggsave(file=namesout, width = 3, height = 4.5, device='svg')
   pv <- tidy(with(alphad, pairwise.wilcox.test(shannon,Sample_time, p.adjust.method = "none")))
   pv
   nametodraw <- colnames(alphad)[3]
@@ -263,14 +264,127 @@ alphadiv_resistome <- function(alphad, namealpha) {
   maxvlue <- max(alphad[,3])
   minvlue <- max(alphad[,3]) - 50
   ggboxplot(alphad, x = "Sample_time", y = nametodraw, notch = FALSE,main=nametodraw, fill = "Sample_time") + geom_jitter()  + 
-    theme(text=element_text(size=12, family="Arial"),axis.text.x = element_text(angle = 90)) +
+    theme(text=element_text(size=12, family="Arial"),axis.text.x = element_text(angle = 90), legend.position = "none") +
     scale_colour_manual(values = cols) + 
     scale_fill_manual(values = cols) +
     geom_signif(
       data=pv[c(1, 2, 3, 4, 5, 6),], 
       aes(xmin = group1, xmax = group2, annotations =  sprintf("p = %.2g", p.value),  y_position =  c(maxvlue, maxvlue + 0.2, maxvlue+0.4,maxvlue+0.6, maxvlue+0.8,  maxvlue+1), xmin = c(1, 1, 1, 2, 3, 4), xmax = c(2, 3, 4, 3,4,5)),
-      manual= TRUE
+      manual= TRUE,textsize = 3.0
     ) + xlab("") +  ylab("Shannon diversity") 
-  namesout <- paste(namealpha, "_shannon.boxplot.pdf")
-  ggsave(file=namesout, width = 5, height = 6)
+  namesout <- paste(namealpha, "_shannon.boxplot.svg")
+  ggsave(file=namesout, width = 3, height = 4.5, device='svg')
 }
+
+##Mechanisms of resistance in each time points 
+Q10_16s_Mechanism <- read.table(file = "Q10_16s_Mechanism/out/Kraken/TaxProfileWithMeta.txt", sep="\t", header = TRUE, row.names = 1)
+S14_16s_Mechanism <- read.table(file = "S14_16s_Mechanism/out/Kraken/TaxProfileWithMeta.txt", sep="\t", header = TRUE, row.names = 1)
+BQ_16s_Mechanism <- read.table(file = "BQ_16s_Mechanism/out/Kraken/TaxProfileWithMeta.txt", sep="\t", header = TRUE, row.names = 1)
+EAML_16s_Mechanism <- read.table(file = "EAML_16s_Mechanism/out/Kraken/TaxProfileWithMeta.txt", sep="\t", header = TRUE, row.names = 1)
+
+draw_boxplot_all_columns(Q10_16s_Mechanism, "Q10_16s_Mechanism", "Q10_16s_Mechanism_boxplot")
+draw_boxplot_all_columns(S14_16s_Mechanism, "S14_16s_Mechanism", "S14_16s_Mechanism_boxplot")
+draw_boxplot_all_columns(BQ_16s_Mechanism, "BQ_16s_Mechanism", "BQ_16s_Mechanism_boxplot")
+draw_boxplot_all_columns(EAML_16s_Mechanism, "EAML_16s_Mechanism", "EAML_16s_Mechanism_boxplot")
+
+remove(alphad)
+
+draw_boxplot_all_columns <- function(alphad, nametofile, dirnames){
+  
+  library(tibble)
+  #library(funr)
+  #script.dir <- funr::get_script_path()
+  # 
+  #ifelse(!dir.exists(file.path(script.dir,dirnames)), dir.create(file.path(script.dir, dirnames)), FALSE)
+  ifelse(!dir.exists(file.path(dirnames)), dir.create(file.path(dirnames)), FALSE)
+  alphad$total_resistome <- rowSums(alphad[, 2:ncol(alphad)])
+  for (i in 2:(dim(alphad)[2])) {
+  #alphad[,i] <- log2(alphad[,i] + 0.00000001) 
+  nametodraw <- colnames(alphad)[i]
+  nametodraw
+  pv <- tidy(with(alphad, pairwise.wilcox.test(alphad[,i],Sample_time, p.adjust.method = "none")))
+  pv
+  maxvlue <- max(alphad[,i])
+  minvlue <- max(alphad[,i]) - 0.2
+  comp <-  combn(levels(as.factor(alphad[,c("Sample_time")])),2,list)
+  
+  ggboxplot(alphad, x = "Sample_time", y = nametodraw, notch = FALSE,main=nametodraw, fill = "Sample_time") + geom_jitter()  + 
+    theme(text=element_text(size=12, family="Arial"),axis.text.x = element_text(angle = 90), legend.position = "none") +
+    scale_colour_manual(values = cols) + 
+    scale_fill_manual(values = cols) +
+    #geom_signif(
+     # data=pv[c(1, 2,3, 4,5, 6),], 
+      #aes(xmin = group1, xmax = group2, annotations =  sprintf("p = %.2g", p.value), y_position =  c(maxvlue, maxvlue + 0.2, maxvlue+0.4, maxvlue+0.6, maxvlue + 0.8, maxvlue+1), xmin = c(1, 1, 1, 2, 3, 4), xmax = c(2, 3, 4, 3, 4,5)),
+      #manual= TRUE
+    #) +
+    stat_compare_means(comparisons = comp,aes(label = paste0("p = ", ..p.format..)), method = "wilcox.test",  p.adjust.method = "bonf", hide.ns =TRUE) +
+   xlab("") +  ylab("# of ARGs per 16S rDNA") 
+  namesout <- paste0(dirnames, "/", nametofile, "_", nametodraw, ".boxplot.svg")
+  ggsave(file=namesout, width = 3, height = 4.5, device='svg')
+  }
+}
+
+?stat_compare_means
+##Type level resistome boxplot plotting for each treatments 
+Q10_16s_type_boxplot <- read.table(file = "Q10_16s_type/out/Kraken/TaxProfileWithMeta.txt", sep="\t", header = TRUE, row.names = 1)
+S14_16s_type_boxplot <- read.table(file = "S14_16s_type/out/Kraken/TaxProfileWithMeta.txt", sep="\t", header = TRUE, row.names = 1)
+BQ_16s_type_boxplot <- read.table(file = "BQ_16s_type/out/Kraken/TaxProfileWithMeta.txt", sep="\t", header = TRUE, row.names = 1)
+EAML_16s_type_boxplot <- read.table(file = "EAML_16s_type/out/Kraken/TaxProfileWithMeta.txt", sep="\t", header = TRUE, row.names = 1)
+
+draw_boxplot_all_columns(Q10_16s_type_boxplot, "Q10_16s_type", "Q10_16s_type_boxplot")
+draw_boxplot_all_columns(S14_16s_type_boxplot, "S14_16s_type", "S14_16s_type_boxplot")
+draw_boxplot_all_columns(BQ_16s_type_boxplot, "BQ_16s_type", "BQ_16s_type_boxplot")
+draw_boxplot_all_columns(EAML_16s_type_boxplot, "EAML_16s_type", "EAML_16s_type_boxplot")
+
+##-----------check the types of resistance and their respond to treatment--------------------##
+
+##S14 ammoxlin used beta lactam type  clarimycin is macrolide antibiotics 
+##Q10 tetracycline is tetracycline type 
+#EAML used ammoxlin and levofloxacin which are beta-lactam and quinolone class 
+#BQ used tetracycline and bismutch 
+
+#When the background resistance type/class is high before treatment, it is more likely to amplify the resistance burden while use antibiotics 
+#to treat diseases, this is because the resistance bugs could take over the niche of other suspective bacteria that were killed during the 
+#treatment, hence increase the level of resistance burden after treatment. If background resistance is low for that type, it is not easily 
+#accumulated the resistance burden for that type, hence will be better treated for the diseases, however with bigger influence on microbial community
+
+#heatmap of all differntial abundant subtypes 
+
+##differntial abundant antimicrobial resistance types/subtypes with time 
+Q10_16s_subtype_heatmap <- read.table(file="./Q10_16s_subtype_B/out/Krakendiff-abundance/Sample_time_filter_table.txt", sep="\t",row.names = 1, header = TRUE, quote = "")
+Q10_16s_subtype_sig <- read.table(file="./Q10_16s_subtype_B/out/Krakendiff-abundance/Sample_time_kw_stat_summary.txt", header=TRUE, sep="\t")
+S14_16s_subtype_heatmap <- read.table(file="./S14_16s_subtype_A/out/Krakendiff-abundance/Sample_time_filter_table.txt", sep="\t",row.names = 1, header = TRUE, quote = "")
+S14_16s_subtype_sig <- read.table(file="./S14_16s_subtype_A/out/Krakendiff-abundance/Sample_time_kw_stat_summary.txt", header=TRUE, sep="\t")
+BQ_16s_subtype_heatmap <- read.table(file="./BQ_16s_subtype//out/Krakendiff-abundance/Sample_time_filter_table.txt", sep="\t",row.names = 1, header = TRUE, quote = "")
+BQ_16s_subtype_sig <- read.table(file="./BQ_16s_subtype//out/Krakendiff-abundance/Sample_time_kw_stat_summary.txt", header=TRUE, sep="\t")
+EAML_16s_subtype_heatmap <- read.table(file="./EAML_16s_subtype/out/Krakendiff-abundance/Sample_time_filter_table.txt", sep="\t",row.names = 1, header = TRUE, quote = "")
+EAML_16s_subtype_sig <- read.table(file="./EAML_16s_subtype//out/Krakendiff-abundance/Sample_time_kw_stat_summary.txt", header=TRUE, sep="\t")
+
+draw_heatmap(Q10_16s_subtype_heatmap, Q10_16s_subtype_sig, "Q10_16s_subtype_sig")
+draw_heatmap(S14_16s_subtype_heatmap, S14_16s_subtype_sig, "S14_16s_subtype_sig")
+draw_heatmap(BQ_16s_subtype_heatmap, BQ_16s_subtype_sig, "BQ_16s_subtype_sig")
+draw_heatmap(EAML_16s_subtype_heatmap, EAML_16s_subtype_sig, "EAML_16s_subtype_sig")
+
+draw_heatmap <- function(q10subtype, sigq10, nametofile){
+  
+sig <- sigq10 %>% filter(kw_pval < 0.05 & FDR < 0.05)
+q10subtype <- q10subtype %>% arrange(Sample_time)
+cater <- q10subtype %>% select(Sample_time)
+q10subtype <- q10subtype %>% select(!Sample_time)
+sigsubtype <- t(q10subtype)[c(sig$Row.names),]
+
+trans <- sigsubtype
+trans <- trans[rowSums(trans==0, na.rm=TRUE)<ncol(q10subtype), ] 
+trans <- trans[ order(row.names(trans)), ]
+
+namesout <- paste0(nametofile, ".heatmap.pdf")
+pdf(namesout, width = 18, height = 24)
+pheatmap(log10(trans + 0.000001), cluster_rows = FALSE,cluster_cols = FALSE, border_color=NA, annotation_col = cater,
+         scale = "row", show_colnames = FALSE, fontsize_row = 9,  
+         #cutree_cols = 4, 
+         color = colorRampPalette(c("steelblue","snow","tomato3"))(1000))
+dev.off()
+}
+
+
+
